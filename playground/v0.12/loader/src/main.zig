@@ -3,9 +3,9 @@ const std = @import("std");
 pub fn main() !void {
     const dllpath =
         // 绝对路径
-        // \\E:\xk\Code\xkyss\xkyss.zig\playground\v0.12\dll\main.dll
+        //\\E:\xk\Code\xkyss\xkyss.zig\playground\v0.12\dll\zig-out\lib\main.dll
         // 相对路径
-        \\../dll/main.dll
+        \\../dll/zig-out/lib/main.dll
     ;
     std.debug.print("Dll Path: {s}\n", .{dllpath});
 

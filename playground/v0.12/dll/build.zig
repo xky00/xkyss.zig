@@ -16,10 +16,11 @@ pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
 
     const lib = b.addSharedLibrary(.{
-        .name = "dll",
+        .name = "main",
         // In this case the main source file is merely a path, however, in more
         // complicated build scripts, this could be a generated file.
         .root_source_file = .{ .path = "src/main.zig" },
+        .link_libc = true,
         .target = target,
         .optimize = optimize,
     });
