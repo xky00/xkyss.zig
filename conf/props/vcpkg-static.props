@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="Globals">
+    <VcpkgTriplet Condition="'$(Platform)'=='Win32'">x86-windows-static</VcpkgTriplet>
+    <VcpkgTriplet Condition="'$(Platform)'=='x64'">x64-windows-static</VcpkgTriplet>
+    <VcpkgEnableManifest>true</VcpkgEnableManifest>
+    <VcpkgUseStatic>true</VcpkgUseStatic>
+  </PropertyGroup>
+  <PropertyGroup Label="UserMacros">
+    <VcpkgInstalledDir>$(SolutionDir)..\..\build\vcpkg_installed\$(ProjectName)\</VcpkgInstalledDir>
+    <VcpkgLibDir Condition="'$(Configuration)'=='Debug'">$(VcpkgInstalledDir)x64-windows-static\debug\lib</VcpkgLibDir>
+    <VcpkgLibDir Condition="'$(Configuration)'=='Release'">$(VcpkgInstalledDir)x64-windows-static\lib</VcpkgLibDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <BuildMacro Include="VcpkgInstalledDir">
+      <Value>$(VcpkgInstalledDir)</Value>
+    </BuildMacro>
+    <BuildMacro Include="VcpkgLibDir">
+      <Value>$(VcpkgLibDir)</Value>
+    </BuildMacro>
+  </ItemGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
+    <Link>
+      <AdditionalLibraryDirectories>$(VcpkgLibDir)</AdditionalLibraryDirectories>
+    </Link>
+    <ClCompile>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
+    <Link>
+      <AdditionalLibraryDirectories>$(VcpkgLibDir)</AdditionalLibraryDirectories>
+    </Link>
+    <ClCompile>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+    </ClCompile>
+  </ItemDefinitionGroup>
+</Project>
