@@ -1,5 +1,9 @@
 const std = @import("std");
 
+// 自定义缓存目录,需要指定两个全路径
+// zig build --prefix D:\Code\xkyss\xkyss.zpp\build\playz\v0.11\hello\zig-out --cache-dir D:\Code\xkyss\xkyss.zpp\build\playz\v0.11\hello\zig-cache
+//
+
 // Although this function looks imperative, note that its job is to
 // declaratively construct a build graph that will be executed by an external
 // runner.

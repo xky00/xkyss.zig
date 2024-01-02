@@ -5,10 +5,10 @@
             "name": "Zig Launch (Windows)",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/zig-out/bin/hello.exe",
+            "program": "${workspaceFolder}/../../../build/playz/v0.11/hello/zig-out/bin/hello.exe",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/../../../build/playz/v0.11/hello",
             "environment": []
         }
     ]
