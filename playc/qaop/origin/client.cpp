@@ -1,4 +1,5 @@
 #include "config.hpp"
+#include <iostream>
 
 int main(int argc, char **argv) {
 	using namespace config;
@@ -15,6 +16,8 @@ int main(int argc, char **argv) {
 	pItm = q.dequeue();
 	pItm = q.dequeue();
 	pItm = q.dequeue();
+
+	std::cout << "no AOP, bye." << std::endl;
 
 	return 0;
 };
