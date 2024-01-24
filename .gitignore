@@ -41,3 +41,5 @@ vcpkg_installed/
 playground/v0.11/with_c/src-c/build
 **/zig-cache/
 playz/v0.11/with_c/src-c/build
+.idea
+cmake-build-debug
