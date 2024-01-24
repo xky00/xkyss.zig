@@ -3,5 +3,6 @@ project(aop)
 
 set(CMAKE_CXX_STANDARD 11)
 
-add_executable(aop main.cpp
-        aop.h)
+add_executable(aop
+        main.cpp
+        aop.hpp)
