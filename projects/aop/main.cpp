@@ -2,11 +2,13 @@
 #include "aop.hpp"
 
 void test01();
+void test02();
 
 int main() {
     std::cout << "Main start." << std::endl;
 
-    test01();
+    // test01();
+    test02();
 
     std::cout << "Main end." << std::endl;
     return 0;
@@ -51,15 +53,20 @@ struct AspectFoo : public Base::this_t {
             << "[dtor for aspect]: " << typeid(this_t).name() << std::endl
             << "  [fulltype is]: " << typeid(fulltype_t).name() << std::endl;
     }
-
-    // static member support
-    //static qaop::static_proxy<this_t> sp;
 };
 
 void test01() {
     using namespace ks_aop;
-    using Combine = AspectFoo<aopfy<aopbase<Alice, AspectFoo>, AspectFoo>>::fulltype_t;
-    Combine c;
+    using Combined = AspectFoo<aopfy<aopbase<Alice, AspectFoo>, AspectFoo>>::fulltype_t;
+    Combined c;
+    c.foo();
+    c.bar();
+}
+
+void test02() {
+    using namespace ks_aop;
+    using Combined = Decorate<Alice>::with<AspectFoo>::type;
+    Combined c;
     c.foo();
     c.bar();
 }
