@@ -43,3 +43,4 @@ playground/v0.11/with_c/src-c/build
 playz/v0.11/with_c/src-c/build
 .idea
 cmake-build-debug
+/build
