@@ -2,19 +2,72 @@
 //
 
 #include <iostream>
+#include <hv/TcpServer.h>
 
-int main()
-{
-    std::cout << "Hello World!\n";
+
+using namespace hv;
+
+#define TEST_TLS        0
+
+int main(int argc, char* argv[]) {
+    if (argc < 2) {
+        printf("Usage: %s port\n", argv[0]);
+        return -10;
+    }
+    int port = atoi(argv[1]);
+
+    hlog_set_level(LOG_LEVEL_DEBUG);
+
+    TcpServer srv;
+    int listenfd = srv.createsocket(port);
+    if (listenfd < 0) {
+        return -20;
+    }
+    printf("server listen on port %d, listenfd=%d ...\n", port, listenfd);
+    srv.onConnection = [](const SocketChannelPtr& channel) {
+        std::string peeraddr = channel->peeraddr();
+        if (channel->isConnected()) {
+            printf("%s connected! connfd=%d id=%d tid=%ld\n", peeraddr.c_str(), channel->fd(), channel->id(), currentThreadEventLoop->tid());
+        }
+        else {
+            printf("%s disconnected! connfd=%d id=%d tid=%ld\n", peeraddr.c_str(), channel->fd(), channel->id(), currentThreadEventLoop->tid());
+        }
+        };
+    srv.onMessage = [](const SocketChannelPtr& channel, Buffer* buf) {
+        // echo
+        printf("< %.*s\n", (int)buf->size(), (char*)buf->data());
+        channel->write(buf);
+        };
+    srv.setThreadNum(4);
+    srv.setLoadBalance(LB_LeastConnections);
+
+#if TEST_TLS
+    hssl_ctx_opt_t ssl_opt;
+    memset(&ssl_opt, 0, sizeof(hssl_ctx_opt_t));
+    ssl_opt.crt_file = "cert/server.crt";
+    ssl_opt.key_file = "cert/server.key";
+    ssl_opt.verify_peer = 0;
+    srv.withTLS(&ssl_opt);
+#endif
+
+    srv.start();
+
+    std::string str;
+    while (std::getline(std::cin, str)) {
+        if (str == "close") {
+            srv.closesocket();
+        }
+        else if (str == "start") {
+            srv.start();
+        }
+        else if (str == "stop") {
+            srv.stop();
+            break;
+        }
+        else {
+            srv.broadcast(str.data(), str.size());
+        }
+    }
+
+    return 0;
 }
-
-// 运行程序: Ctrl + F5 或调试 >“开始执行(不调试)”菜单
-// 调试程序: F5 或调试 >“开始调试”菜单
-
-// 入门使用技巧: 
-//   1. 使用解决方案资源管理器窗口添加/管理文件
-//   2. 使用团队资源管理器窗口连接到源代码管理
-//   3. 使用输出窗口查看生成输出和其他消息
-//   4. 使用错误列表窗口查看错误
-//   5. 转到“项目”>“添加新项”以创建新的代码文件，或转到“项目”>“添加现有项”以将现有代码文件添加到项目
-//   6. 将来，若要再次打开此项目，请转到“文件”>“打开”>“项目”并选择 .sln 文件
