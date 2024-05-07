@@ -44,3 +44,4 @@ playz/v0.11/with_c/src-c/build
 .idea
 cmake-build-debug
 /build
+playc/hv/hv-server/libhv.*.log
