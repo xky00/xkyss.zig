@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include <iostream>
 #include <string>
@@ -11,19 +11,30 @@ private:
     std::vector<User> users;
 
 public:
-    // Ìí¼ÓÓÃ»§
+    // æ·»åŠ ç”¨æˆ·
     void addUser(const User& user) {
         users.push_back(user);
     }
 
-    // ¸ù¾İĞÕÃû»ñÈ¡ÓÃ»§
+    // æ ¹æ®å§“åè·å–ç”¨æˆ·
     User getUser(const std::string& name) const {
         for (const auto& user : users) {
             if (user.getName() == name) {
                 return user;
             }
         }
-        // Èç¹ûÕÒ²»µ½ÓÃ»§£¬·µ»ØÒ»¸ö¿ÕµÄUser¶ÔÏó
+        // å¦‚æœæ‰¾ä¸åˆ°ç”¨æˆ·ï¼Œè¿”å›ä¸€ä¸ªç©ºçš„Userå¯¹è±¡
+        return User("", -1);
+    }
+
+    // æ ¹æ®å§“åè·å–ç”¨æˆ·
+    User getUser2(const std::string& name, const int code) const {
+        for (const auto& user : users) {
+            if (user.getName() == name && user.getCode() == code) {
+                return user;
+            }
+        }
+        // å¦‚æœæ‰¾ä¸åˆ°ç”¨æˆ·ï¼Œè¿”å›ä¸€ä¸ªç©ºçš„Userå¯¹è±¡
         return User("", -1);
     }
 };

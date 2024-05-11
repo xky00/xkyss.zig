@@ -4,24 +4,41 @@
 #include "Service.h"
 
 
-class ServiceProxy : public Service {
-public:
-    // 添加用户
-    void addUser(const User& user) {
-        // 在调用原始Service对象之前添加额外逻辑
-        std::cout << "Adding user: " << user.getName() << std::endl;
-        Service::addUser(user);
+#define GENERATE_PROXY_CACHE_CLASS_BEGIN(TOriginal) \
+    class TOriginal##Proxy : public TOriginal { 
+
+#define GENERATE_PROXY_CACHE_CLASS_END() }
+
+#define GENERATE_PROXY_CACHE_GETTER0(TOriginal, MethodName, TReture) \
+    public: \
+    TReture MethodName() { \
+            std::cout << "Aspect: " << #MethodName  << std::endl; \
+            return TOriginal::MethodName(); \
     }
 
-    // 根据姓名获取用户
-    User getUser(const std::string& name) const {
-        // 在调用原始Service对象之前添加额外逻辑
-        std::cout << "Getting user: " << name << std::endl;
-        return Service::getUser(name);
+#define GENERATE_PROXY_CACHE_GETTER1(TOriginal, MethodName, TReture, TParam1) \
+    public: \
+    TReture MethodName(TParam1 param1) { \
+            std::cout << "Aspect: " << #MethodName << "(" << param1 << ")" << std::endl; \
+            return TOriginal::MethodName(param1); \
     }
-};
+
+#define GENERATE_PROXY_CACHE_GETTER2(TOriginal, MethodName, TReture, TParam1, TParam2) \
+    public: \
+    TReture MethodName(TParam1 param1, TParam2 param2) { \
+            std::cout << "Aspect: " << #MethodName << "(" << param1 << ", " << param2 << ")" << std::endl; \
+            return TOriginal::MethodName(param1, param2); \
+    }
+
+GENERATE_PROXY_CACHE_CLASS_BEGIN(Service)
+    GENERATE_PROXY_CACHE_GETTER1(Service, getUser, User, const std::string&)
+    GENERATE_PROXY_CACHE_GETTER2(Service, getUser2, User, const std::string&, const int)
+GENERATE_PROXY_CACHE_CLASS_END();
+
+#define COUNT(...) std::tuple_size<decltype(std::make_tuple(__VA_ARGS__))>::value
 
 int main() {
+
     // 创建Service代理对象
     ServiceProxy serviceProxy;
 
