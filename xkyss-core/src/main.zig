@@ -2,8 +2,8 @@ const std = @import("std");
 const Loop = @import("xkyss-core").Loop;
 
 pub fn main() !void {
-    var loop: Loop = .{ .a = 222 };
-    _ = loop.init();
+    var loop: Loop = .{};
+    _ = loop.run();
 }
 
 test "simple test" {

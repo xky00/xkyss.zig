@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/zig-out/bin/xkyss-core.exe",
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}
