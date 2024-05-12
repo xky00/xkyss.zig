@@ -1,6 +1,7 @@
 //! 基础轮询
 
 const std = @import("std");
+const os = @import("os");
 const Self = @This();
 
 // 状态
