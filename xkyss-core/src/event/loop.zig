@@ -1,7 +1,8 @@
 //! 基础轮询
 
 const std = @import("std");
-const os = @import("os");
+const Time = @import("../base/time.zig");
+
 const Self = @This();
 
 // 状态
@@ -10,6 +11,10 @@ pub const Status = enum {
     running,
     pause,
 };
+
+const pause_sleep_time: u64 = 10; // ms
+const min_event_timeout: u64 = 1; // ms
+const max_event_timeout: u64 = 1000; // ms
 
 // 成员变量
 status: Status = Status.stop,
@@ -23,41 +28,44 @@ pub fn run(self: *Self) i32 {
 
     // 轮询前
     self.status = Status.running;
-    self.loop_count = 5;
-    self.start_time = 1;
+    self.loop_count = 0;
+    self.start_time = Time.gethrtime();
 
     // 轮询
-    // while (self.status != Status.stop) {
-    // hloop_update_time(loop);
-    // if (loop->status == HLOOP_STATUS_PAUSE) {
-    //     msleep(PAUSE_SLEEP_TIME);
-    //     continue;
-    // }
-    // self.loop_count += 1;
-    // // timers -> events -> idles
-    // ntimer = nevent = nidle = 0;
-    // event_timeout = INFINITE;
-    // if (loop->timers.size() != 0) {
-    //     ntimer = hloop_handle_timers(loop);
-    //     event_timeout = MAX(MIN_EVENT_TIMEOUT, loop->min_timer_timeout/10);
-    // }
-    // if (loop->events.size() == 0 || loop->idles.size() != 0) {
-    //     event_timeout = MIN(event_timeout, MAX_EVENT_TIMEOUT);
-    // }
-    // if (loop->events.size() != 0) {
-    //     nevent = hloop_handle_events(loop, event_timeout);
-    // }
-    // else {
-    //     msleep(event_timeout);
-    // }
-    // if (ntimer == 0 && nevent == 0 && loop->idles.size() != 0) {
-    //     nidle = hloop_handle_idles(loop);
-    // }
-    // }
+    while (self.status != Status.stop) {
+        self.current_time = Time.gethrtime();
+        // std.debug.print("run {}\n", .{self.current_time});
+
+        if (self.status == Status.pause) {
+            Time.sleep(pause_sleep_time);
+            continue;
+        }
+        self.loop_count += 1;
+        // // timers -> events -> idles
+        // ntimer = nevent = nidle = 0;
+        // event_timeout = INFINITE;
+        // if (loop->timers.size() != 0) {
+        //     ntimer = hloop_handle_timers(loop);
+        //     event_timeout = MAX(MIN_EVENT_TIMEOUT, loop->min_timer_timeout/10);
+        // }
+        // if (loop->events.size() == 0 || loop->idles.size() != 0) {
+        //     event_timeout = MIN(event_timeout, MAX_EVENT_TIMEOUT);
+        // }
+        // if (loop->events.size() != 0) {
+        //     nevent = hloop_handle_events(loop, event_timeout);
+        // }
+        // else {
+        //     msleep(event_timeout);
+        std.time.sleep(pause_sleep_time);
+        // }
+        // if (ntimer == 0 && nevent == 0 && loop->idles.size() != 0) {
+        //     nidle = hloop_handle_idles(loop);
+        // }
+    }
 
     // 轮询后
     self.status = Status.stop;
-    self.end_time = 1222;
+    self.end_time = Time.gethrtime();
     self.cleanup();
 
     return 0;
@@ -65,6 +73,7 @@ pub fn run(self: *Self) i32 {
 
 pub fn stop(self: *Self) i32 {
     std.debug.print("stop: {}\n", .{self});
+    self.status = Status.stop;
     return 0;
 }
 

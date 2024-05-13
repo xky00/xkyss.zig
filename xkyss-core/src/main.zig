@@ -1,9 +1,18 @@
 const std = @import("std");
-const t = @import("base/time.zig");
+const ks = @import("xkyss-core");
 
 pub fn main() !void {
-    const t1 = t.gethrtime();
-    std.debug.print("t1: {}\n", .{t1});
+    var loop = ks.Loop{};
+    std.debug.print("{}\n", .{loop});
+
+    _ = try std.Thread.spawn(.{}, runner, .{&loop});
+    _ = loop.run();
+}
+
+fn runner(loop: *ks.Loop) void {
+    std.debug.print("runner {}\n", .{loop});
+    ks.Time.sleep(5000);
+    _ = loop.stop();
 }
 
 test "simple test" {

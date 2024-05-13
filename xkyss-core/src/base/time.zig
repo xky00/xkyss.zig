@@ -16,6 +16,10 @@ pub fn gethrtime() u64 {
     return 0;
 }
 
+pub fn sleep(ms: u64) void {
+    std.time.sleep(ms * std.time.ns_per_ms);
+}
+
 test "gethrtime" {
     const c = @cImport({
         @cInclude("base/time.h");
