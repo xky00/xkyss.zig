@@ -1,27 +1,27 @@
 const std = @import("std");
-// const os = std.os;
+const os = std.os;
 
-const c_time = @cImport({
-    @cInclude("base/time.h");
-});
-
-pub fn gethrtime_c() u64 {
-    const t = c_time.gethrtime();
-    const r: u64 = @intCast(t);
-    return r;
-}
+var s_freq: f64 = 0;
 
 pub fn gethrtime() u64 {
-    // const freq = os.windows.QueryPerformanceFrequency();
-    // const count = os.windows.QueryPerformanceCounter();
+    if (s_freq == 0) {
+        const freq = os.windows.QueryPerformanceFrequency();
+        s_freq = @as(f64, @floatFromInt(freq)) / 10_000_000;
+    }
+    if (s_freq != 0) {
+        const count = os.windows.QueryPerformanceCounter();
+        const r: f64 = @as(f64, @floatFromInt(count)) / s_freq;
+        return @intFromFloat(r);
+    }
     return 0;
 }
 
 test "gethrtime" {
-    const t1 = c_time.x();
-    std.debug.print("t1: {}\n", .{t1});
+    const c = @cImport({
+        @cInclude("base/time.h");
+    });
 
+    const t1: u64 = @intCast(c.gethrtime());
     const t2 = gethrtime();
-    std.debug.print("t2: {}\n", .{t2});
-    try std.testing.expectEqual(0, gethrtime());
+    try std.testing.expect(t2 - t1 < 100);
 }

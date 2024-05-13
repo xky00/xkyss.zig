@@ -1,3 +1,3 @@
 
 
-long long  gethrtime();
+unsigned long long gethrtime();

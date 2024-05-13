@@ -3,9 +3,7 @@ const t = @import("base/time.zig");
 
 pub fn main() !void {
     const t1 = t.gethrtime();
-    const t2 = t.gethrtime_c();
-    std.log.debug("{}", .{t1});
-    std.log.debug("{}", .{t2});
+    std.debug.print("t1: {}\n", .{t1});
 }
 
 test "simple test" {
