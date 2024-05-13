@@ -1,9 +1,11 @@
 const std = @import("std");
-const Loop = @import("xkyss-core").Loop;
+const t = @import("base/time.zig");
 
 pub fn main() !void {
-    var loop: Loop = .{};
-    _ = loop.run();
+    const t1 = t.gethrtime();
+    const t2 = t.gethrtime_c();
+    std.log.debug("{}", .{t1});
+    std.log.debug("{}", .{t2});
 }
 
 test "simple test" {

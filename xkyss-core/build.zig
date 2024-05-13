@@ -19,9 +19,9 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-    lib.addIncludePath(.{ .path = "c_src" });
+    lib.addIncludePath(.{ .path = "cxx/include/" });
+    lib.addCSourceFiles(.{ .root = b.path("cxx/src/"), .files = &.{"base/time.c"}, .flags = &.{} });
     lib.linkLibC();
-
     b.installArtifact(lib);
 
     //
@@ -34,7 +34,9 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-
+    exe.addIncludePath(.{ .path = "cxx/include/" });
+    exe.addCSourceFiles(.{ .root = b.path("cxx/src/"), .files = &.{"base/time.c"}, .flags = &.{} });
+    exe.linkLibC();
     exe.root_module.addImport("xkyss-core", module_xkyss_core);
     b.installArtifact(exe);
 

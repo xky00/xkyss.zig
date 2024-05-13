@@ -33,7 +33,6 @@ GENERATE_PROXY_CACHE_CLASS_BEGIN(Service)
     GENERATE_PROXY_CACHE_GETTER2(getUser2, User, const std::string&, const int)
 GENERATE_PROXY_CACHE_CLASS_END();
 
-#define COUNT(...) std::tuple_size<decltype(std::make_tuple(__VA_ARGS__))>::value
 
 int main() {
 

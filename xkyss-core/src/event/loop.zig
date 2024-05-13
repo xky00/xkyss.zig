@@ -27,33 +27,33 @@ pub fn run(self: *Self) i32 {
     self.start_time = 1;
 
     // 轮询
-    while (self.status != Status.stop) {
-        // hloop_update_time(loop);
-        // if (loop->status == HLOOP_STATUS_PAUSE) {
-        //     msleep(PAUSE_SLEEP_TIME);
-        //     continue;
-        // }
-        self.loop_count += 1;
-        // // timers -> events -> idles
-        // ntimer = nevent = nidle = 0;
-        // event_timeout = INFINITE;
-        // if (loop->timers.size() != 0) {
-        //     ntimer = hloop_handle_timers(loop);
-        //     event_timeout = MAX(MIN_EVENT_TIMEOUT, loop->min_timer_timeout/10);
-        // }
-        // if (loop->events.size() == 0 || loop->idles.size() != 0) {
-        //     event_timeout = MIN(event_timeout, MAX_EVENT_TIMEOUT);
-        // }
-        // if (loop->events.size() != 0) {
-        //     nevent = hloop_handle_events(loop, event_timeout);
-        // }
-        // else {
-        //     msleep(event_timeout);
-        // }
-        // if (ntimer == 0 && nevent == 0 && loop->idles.size() != 0) {
-        //     nidle = hloop_handle_idles(loop);
-        // }
-    }
+    // while (self.status != Status.stop) {
+    // hloop_update_time(loop);
+    // if (loop->status == HLOOP_STATUS_PAUSE) {
+    //     msleep(PAUSE_SLEEP_TIME);
+    //     continue;
+    // }
+    // self.loop_count += 1;
+    // // timers -> events -> idles
+    // ntimer = nevent = nidle = 0;
+    // event_timeout = INFINITE;
+    // if (loop->timers.size() != 0) {
+    //     ntimer = hloop_handle_timers(loop);
+    //     event_timeout = MAX(MIN_EVENT_TIMEOUT, loop->min_timer_timeout/10);
+    // }
+    // if (loop->events.size() == 0 || loop->idles.size() != 0) {
+    //     event_timeout = MIN(event_timeout, MAX_EVENT_TIMEOUT);
+    // }
+    // if (loop->events.size() != 0) {
+    //     nevent = hloop_handle_events(loop, event_timeout);
+    // }
+    // else {
+    //     msleep(event_timeout);
+    // }
+    // if (ntimer == 0 && nevent == 0 && loop->idles.size() != 0) {
+    //     nidle = hloop_handle_idles(loop);
+    // }
+    // }
 
     // 轮询后
     self.status = Status.stop;

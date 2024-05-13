@@ -3,10 +3,15 @@ const std = @import("std");
 
 const c_time = @cImport({
     @cInclude("base/time.h");
-    @cInclude("base/x.h");
 });
 
-pub fn gethrtime() u128 {
+pub fn gethrtime_c() u64 {
+    const t = c_time.gethrtime();
+    const r: u64 = @intCast(t);
+    return r;
+}
+
+pub fn gethrtime() u64 {
     // const freq = os.windows.QueryPerformanceFrequency();
     // const count = os.windows.QueryPerformanceCounter();
     return 0;
