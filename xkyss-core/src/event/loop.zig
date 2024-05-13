@@ -73,17 +73,30 @@ pub fn run(self: *Self) i32 {
 
 pub fn stop(self: *Self) i32 {
     std.debug.print("stop: {}\n", .{self});
+    std.debug.print("\tstatus {}", .{self.status});
     self.status = Status.stop;
+    std.debug.print(" => {}\n", .{self.status});
+    std.debug.print("bye.\n", .{});
     return 0;
 }
 
 pub fn pause(self: *Self) i32 {
-    std.debug.print("pause: {}\n", .{self});
+    std.debug.print("pause", .{});
+    std.debug.print("\tstatus {}", .{self.status});
+    if (self.status == Status.running) {
+        self.status = Status.pause;
+    }
+    std.debug.print(" => {}\n", .{self.status});
     return 0;
 }
 
-pub fn @"resume"(self: *Self) i32 {
-    std.debug.print("resume: {}\n", .{self});
+pub fn unpause(self: *Self) i32 {
+    std.debug.print("resume", .{});
+    std.debug.print("\tstatus {}", .{self.status});
+    if (self.status == Status.pause) {
+        self.status = Status.running;
+    }
+    std.debug.print(" => {}\n", .{self.status});
     return 0;
 }
 
@@ -108,5 +121,5 @@ test "pause" {
 
 test "resume" {
     var loop4 = Self{};
-    _ = @"resume"(&loop4);
+    _ = unpause(&loop4);
 }

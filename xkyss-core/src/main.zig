@@ -1,18 +1,23 @@
 const std = @import("std");
 const ks = @import("xkyss-core");
+const sleep = ks.time.sleep;
 
 pub fn main() !void {
     var loop = ks.Loop{};
     std.debug.print("{}\n", .{loop});
 
     _ = try std.Thread.spawn(.{}, runner, .{&loop});
-    _ = loop.run();
+    // 等待循环开始
+    sleep(2000);
+
+    _ = loop.pause();
+    _ = loop.unpause();
+    _ = loop.stop();
 }
 
 fn runner(loop: *ks.Loop) void {
     std.debug.print("runner {}\n", .{loop});
-    ks.Time.sleep(5000);
-    _ = loop.stop();
+    _ = loop.run();
 }
 
 test "simple test" {
