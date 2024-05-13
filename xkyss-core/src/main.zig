@@ -8,7 +8,7 @@ pub fn main() !void {
 
     _ = try std.Thread.spawn(.{}, runner, .{&loop});
     // 等待循环开始
-    sleep(2000);
+    sleep(100);
 
     _ = loop.pause();
     _ = loop.unpause();
