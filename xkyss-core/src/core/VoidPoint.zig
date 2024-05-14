@@ -17,15 +17,30 @@ test "u32 with anyopaque" {
     try std.testing.expectEqual(x, r.*);
 }
 
-test "string with anyopaque" {
+test "*string with anyopaque" {
     const s = "hello";
     const p: *const anyopaque = @ptrCast(&s);
     const r: *const *const [5:0]u8 = @ptrCast(@alignCast(p));
+    const x: *const [*:0]u8 = @ptrCast(@alignCast(p)); // 无法获取长度
 
     std.debug.print("\n\n", .{});
     std.debug.print("s: {s}, len: {d}, type: {}\n", .{ s, s.len, @TypeOf(s) });
     std.debug.print("ps: {}\n", .{&s});
     std.debug.print("p: {}\n", .{p});
-    std.debug.print("r: {}\n", .{r});
-    std.debug.print("v: {s}\n", .{r.*});
+    std.debug.print("r: {s} {*} {d}\n", .{ r.*, r, r.*.len });
+    std.debug.print("x: {s} {*}\n", .{ x.*, x });
+}
+
+test "string with anyopaque 2" {
+    const s = "hello";
+    const p: *const anyopaque = @ptrCast(s);
+    const r: *const [5:0]u8 = @ptrCast(@alignCast(p));
+    const x: *const [*:0]u8 = @ptrCast(@alignCast(&p)); // 无法获取长度
+
+    std.debug.print("\n\n", .{});
+    std.debug.print("s: {s}, len: {d}, type: {}\n", .{ s, s.len, @TypeOf(s) });
+    std.debug.print("ps: {}\n", .{&s});
+    std.debug.print("p: {}\n", .{p});
+    std.debug.print("r: {s} {*} {d}\n", .{ r.*, r, r.*.len });
+    std.debug.print("x: {s}\n", .{x.*});
 }
