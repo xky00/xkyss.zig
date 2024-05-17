@@ -47,3 +47,5 @@ cmake-build-debug
 playc/hv/hv-server/libhv.*.log
 playc/hv/hv-client/libhv.*.log
 *.vcxproj.user
+xkyss-core/int
+xkyss-core/out

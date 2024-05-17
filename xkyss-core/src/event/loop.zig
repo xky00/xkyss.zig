@@ -1,10 +1,12 @@
 //! 基础轮询
-
+//!
 const std = @import("std");
 const Time = @import("../base/time.zig");
 const Idle = @import("Idle.zig");
 
 const Self = @This();
+const IdleMap = std.AutoHashMap(u32, *Idle);
+// const IdleCallback = fn (*Idle, *void) void;
 
 // 状态
 pub const Status = enum {
@@ -23,7 +25,8 @@ start_time: u64 = 0,
 end_time: u64 = 0,
 current_time: u64 = 0,
 loop_count: u64 = 0,
-idles: std.AutoHashMap(u32, *Idle) = undefined,
+idle_count: u32 = 0,
+idles: IdleMap = IdleMap.init(std.heap.page_allocator),
 
 pub fn run(self: *Self) i32 {
     std.debug.print("run: {}\n", .{self});
@@ -102,7 +105,28 @@ pub fn unpause(self: *Self) i32 {
     return 0;
 }
 
-// pub fn add_idle(self: *Self, idle: *Idle) void {}
+pub fn add_idle(self: *Self, userdata: *void, repeat: u32) *Idle {
+    std.debug.print("add_idle", .{});
+    std.debug.print("\tuserdata: {}", .{userdata});
+    std.debug.print("\trepeat: {}", .{repeat});
+
+    _ = self;
+    var idle = Idle{};
+    // idle.loop = self;
+    // self.idle_counter += 1;
+    // idle.id = self.idle_counter;
+    // // idle.callback = callback;
+    idle.userdata = userdata;
+    idle.repeat = repeat;
+    // self.idles.put(idle.id, idle);
+    return &idle;
+}
+
+pub fn del_idle(self: *Self, idle_id: u32) void {
+    _ = self;
+    std.debug.print("del_idle", .{});
+    std.debug.print("\t idle_id: {}", .{idle_id});
+}
 
 fn cleanup(self: *Self) void {
     std.debug.print("cleanup: {}\n", .{self});
@@ -127,4 +151,16 @@ test "pause" {
 test "resume" {
     var loop4 = Self{};
     _ = unpause(&loop4);
+}
+
+fn test_cb(idle: *Idle, ud: *void) void {
+    std.debug.print("test_cb: idle: {}, ud: {}", .{ idle, ud });
+}
+
+test "add_idle" {
+    var loop5 = Self{};
+    var x: u32 = 99;
+    const ud: *void = @ptrCast(&x);
+    const idle = loop5.add_idle(ud, 5);
+    std.debug.print("\nidle: {}\n", .{idle});
 }
