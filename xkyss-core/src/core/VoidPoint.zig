@@ -44,3 +44,18 @@ test "string with anyopaque 2" {
     std.debug.print("r: {s} {*} {d}\n", .{ r.*, r, r.*.len });
     std.debug.print("x: {s}\n", .{x.*});
 }
+
+test "u32 with void" {
+    std.debug.print("ignore\n", .{});
+    var x: u32 = 111;
+    const p: *void = @ptrCast(&x);
+    const r: *u32 = @ptrCast(@alignCast(p));
+
+    std.debug.print("\n\n", .{});
+    std.debug.print("x: {}\n", .{x});
+    std.debug.print("p: {x}\n", .{p});
+    std.debug.print("r: {}\n", .{r});
+    std.debug.print("v: {}\n", .{r.*});
+
+    try std.testing.expectEqual(x, r.*);
+}
