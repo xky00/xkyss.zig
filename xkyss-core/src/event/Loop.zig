@@ -105,21 +105,22 @@ pub fn unpause(self: *Self) i32 {
     return 0;
 }
 
-pub fn add_idle(self: *Self, userdata: *void, repeat: u32) *Idle {
+pub fn add_idle(self: *Self, callback: *const fn () void, userdata: *void, repeat: u32) !*Idle {
     std.debug.print("add_idle", .{});
+    std.debug.print("\tcallback: {}", .{callback});
     std.debug.print("\tuserdata: {}", .{userdata});
     std.debug.print("\trepeat: {}", .{repeat});
+    std.debug.print("\n", .{});
 
-    _ = self;
-    var idle = Idle{};
-    // idle.loop = self;
-    // self.idle_counter += 1;
-    // idle.id = self.idle_counter;
-    // // idle.callback = callback;
+    var idle = try std.heap.page_allocator.create(Idle);
+    idle.loop = self;
+    self.idle_count += 1;
+    idle.id = self.idle_count;
+    idle.callback = callback;
     idle.userdata = userdata;
     idle.repeat = repeat;
-    // self.idles.put(idle.id, idle);
-    return &idle;
+    try self.idles.put(idle.id, idle);
+    return idle;
 }
 
 pub fn del_idle(self: *Self, idle_id: u32) void {
@@ -153,14 +154,14 @@ test "resume" {
     _ = unpause(&loop4);
 }
 
-fn test_cb(idle: *Idle, ud: *void) void {
-    std.debug.print("test_cb: idle: {}, ud: {}", .{ idle, ud });
+fn test_cb() void {
+    std.debug.print("test_cb: idle: , ud: ", .{});
 }
 
 test "add_idle" {
     var loop5 = Self{};
     var x: u32 = 99;
     const ud: *void = @ptrCast(&x);
-    const idle = loop5.add_idle(ud, 5);
+    const idle = try loop5.add_idle(&test_cb, ud, 5);
     std.debug.print("\nidle: {}\n", .{idle});
 }
