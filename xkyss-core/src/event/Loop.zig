@@ -20,13 +20,23 @@ const min_event_timeout: u64 = 1; // ms
 const max_event_timeout: u64 = 1000; // ms
 
 // 成员变量
+allocator: std.mem.Allocator,
 status: Status = Status.stop,
 start_time: u64 = 0,
 end_time: u64 = 0,
 current_time: u64 = 0,
 loop_count: u64 = 0,
 idle_count: u32 = 0,
-idles: IdleMap = IdleMap.init(std.heap.page_allocator),
+idles: IdleMap = undefined,
+
+pub fn init(allocator: std.mem.Allocator) Self {
+    var loop: Self = .{};
+    loop.allocator = allocator;
+    loop.idles = IdleMap.init(allocator);
+    return loop;
+}
+
+pub fn deinit() !void {}
 
 pub fn run(self: *Self) i32 {
     std.debug.print("run: {}\n", .{self});
