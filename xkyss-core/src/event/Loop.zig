@@ -30,13 +30,16 @@ idle_count: u32 = 0,
 idles: IdleMap = undefined,
 
 pub fn init(allocator: std.mem.Allocator) Self {
-    var loop: Self = .{};
-    loop.allocator = allocator;
-    loop.idles = IdleMap.init(allocator);
+    const loop: Self = .{
+        .allocator = allocator,
+        .idles = IdleMap.init(allocator),
+    };
     return loop;
 }
 
-pub fn deinit() !void {}
+pub fn deinit(self: *Self) void {
+    self.idles.deinit();
+}
 
 pub fn run(self: *Self) i32 {
     std.debug.print("run: {}\n", .{self});
@@ -143,6 +146,13 @@ fn cleanup(self: *Self) void {
     std.debug.print("cleanup: {}\n", .{self});
 }
 
+test "init & deinit" {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    const allocator = gpa.allocator();
+    var loop = Self.init(allocator);
+    defer loop.deinit();
+}
+
 test "run" {
     std.debug.print("ignore\n", .{});
     // var loop = Self{};
@@ -150,18 +160,24 @@ test "run" {
 }
 
 test "stop" {
-    var loop2 = Self{};
-    _ = stop(&loop2);
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    const allocator = gpa.allocator();
+    var loop = Self.init(allocator);
+    _ = stop(&loop);
 }
 
 test "pause" {
-    var loop3 = Self{};
-    _ = pause(&loop3);
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    const allocator = gpa.allocator();
+    var loop = Self.init(allocator);
+    _ = pause(&loop);
 }
 
 test "resume" {
-    var loop4 = Self{};
-    _ = unpause(&loop4);
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    const allocator = gpa.allocator();
+    var loop = Self.init(allocator);
+    _ = unpause(&loop);
 }
 
 fn test_cb() void {
@@ -169,9 +185,11 @@ fn test_cb() void {
 }
 
 test "add_idle" {
-    var loop5 = Self{};
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    const allocator = gpa.allocator();
+    var loop = Self.init(allocator);
     var x: u32 = 99;
     const ud: *void = @ptrCast(&x);
-    const idle = try loop5.add_idle(&test_cb, ud, 5);
+    const idle = try loop.add_idle(&test_cb, ud, 5);
     std.debug.print("\nidle: {}\n", .{idle});
 }
