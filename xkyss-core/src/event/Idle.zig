@@ -11,5 +11,5 @@ repeat: u32 = 0,
 callback: *const CallBack = undefined,
 userdata: *void = undefined,
 // private:
-// destroy: u1 = 1,
+destroy: bool = false,
 // disable: u1 = 1,
