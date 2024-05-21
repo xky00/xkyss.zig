@@ -3,7 +3,9 @@ const ks = @import("xkyss-core");
 const sleep = ks.time.sleep;
 
 pub fn main() !void {
-    var loop = ks.Loop{};
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    const allocator = gpa.allocator();
+    var loop = ks.Loop.init(allocator);
     std.debug.print("{}\n", .{loop});
 
     _ = try std.Thread.spawn(.{}, runner, .{&loop});
@@ -17,7 +19,7 @@ pub fn main() !void {
 
 fn runner(loop: *ks.Loop) void {
     std.debug.print("runner {}\n", .{loop});
-    _ = loop.run();
+    _ = try loop.run();
 }
 
 test "simple test" {

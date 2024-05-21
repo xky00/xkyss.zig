@@ -19,7 +19,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-    try depentc(lib, b);
+    // try depentc(lib, b);
     b.installArtifact(lib);
 
     //
@@ -32,7 +32,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-    try depentc(exe, b);
+    // try depentc(exe, b);
     exe.root_module.addImport("xkyss-core", module_xkyss_core);
     b.installArtifact(exe);
 
@@ -59,7 +59,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-    try depentc(lib_unit_tests, b);
+    // try depentc(lib_unit_tests, b);
     const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
 
     const exe_unit_tests = b.addTest(.{
@@ -67,7 +67,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-    try depentc(exe_unit_tests, b);
+    // try depentc(exe_unit_tests, b);
     const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
 
     const test_step = b.step("test", "Run unit tests");

@@ -20,12 +20,12 @@ pub fn sleep(ms: u64) void {
     std.time.sleep(ms * std.time.ns_per_ms);
 }
 
-test "gethrtime" {
-    const c = @cImport({
-        @cInclude("base/time.h");
-    });
+// test "gethrtime" {
+//     const c = @cImport({
+//         @cInclude("base/time.h");
+//     });
 
-    const t1: u64 = @intCast(c.gethrtime());
-    const t2 = gethrtime();
-    try std.testing.expect(t2 - t1 < 100);
-}
+//     const t1: u64 = @intCast(c.gethrtime());
+//     const t2 = gethrtime();
+//     try std.testing.expect(t2 - t1 < 100);
+// }
