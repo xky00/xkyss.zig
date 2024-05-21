@@ -49,10 +49,11 @@ pub fn run(self: *Self) !i32 {
     self.loop_count = 0;
     self.start_time = Time.gethrtime();
     // 轮询
-    for (0..10) |i| {
-        // while (self.status != Status.stop) {
+    // for (0..10) |i| {
+    while (self.status != Status.stop) {
         self.current_time = Time.gethrtime();
-        std.debug.print("loop {} at {}\n", .{ i, self.current_time });
+        // std.debug.print("loop {} at {}\n", .{ i, self.current_time });
+        std.debug.print("loop {} at {}\n", .{ self.loop_count, self.current_time });
 
         if (self.status == Status.pause) {
             Time.sleep(pause_sleep_time);
@@ -74,7 +75,7 @@ pub fn run(self: *Self) !i32 {
         // }
         // else {
         //     msleep(event_timeout);
-        std.time.sleep(pause_sleep_time);
+        Time.sleep(pause_sleep_time);
         // }
         // if (ntimer == 0 && nevent == 0 && loop->idles.size() != 0) {
         _ = try self.handle_idles();
@@ -160,6 +161,16 @@ fn cleanup(self: *Self) void {
     std.debug.print("cleanup: {}\n", .{self});
 }
 
+fn stop_async(self: *Self) !void {
+    _ = try std.Thread.spawn(.{}, (struct {
+        fn runner(loop: *Self) void {
+            std.debug.print("runner", .{});
+            Time.sleep(1000);
+            _ = loop.stop();
+        }
+    }).runner, .{self});
+}
+
 test "init & deinit" {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
@@ -236,5 +247,6 @@ test "run with idles" {
     _ = try loop.add_idle(&test_cb, ud, 5);
     // std.debug.print("\nidle: {}\n", .{idle});
 
+    try loop.stop_async();
     _ = try loop.run();
 }
