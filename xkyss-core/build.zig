@@ -73,6 +73,18 @@ pub fn build(b: *std.Build) void {
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&run_lib_unit_tests.step);
     test_step.dependOn(&run_exe_unit_tests.step);
+
+    // single test
+    const single_unit_tests = b.addTest(.{
+        .root_source_file = b.path("src/single.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    // try depentc(lib_unit_tests, b);
+    const run_single_unit_tests = b.addRunArtifact(single_unit_tests);
+
+    const single_step = b.step("single-test", "Run unit tests");
+    single_step.dependOn(&run_single_unit_tests.step);
 }
 
 fn depentc(c: *std.Build.Step.Compile, b: *std.Build) !void {

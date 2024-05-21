@@ -44,21 +44,21 @@ pub fn deinit(self: *Self) void {
 pub fn run(self: *Self) !i32 {
     std.debug.print("run: {}\n", .{self});
 
-    // // 轮询前
+    // 轮询前
     self.status = Status.running;
     self.loop_count = 0;
-    // self.start_time = Time.gethrtime();
-
+    self.start_time = Time.gethrtime();
     // 轮询
-    while (self.status != Status.stop) {
-        // self.current_time = Time.gethrtime();
-        // std.debug.print("run {}\n", .{self.current_time});
+    for (0..10) |i| {
+        // while (self.status != Status.stop) {
+        self.current_time = Time.gethrtime();
+        std.debug.print("loop {} at {}\n", .{ i, self.current_time });
 
         if (self.status == Status.pause) {
             Time.sleep(pause_sleep_time);
-            continue;
+            // continue;
         }
-        // self.loop_count += 1;
+        self.loop_count += 1;
         // // timers -> events -> idles
         // ntimer = nevent = nidle = 0;
         // event_timeout = INFINITE;
@@ -74,7 +74,7 @@ pub fn run(self: *Self) !i32 {
         // }
         // else {
         //     msleep(event_timeout);
-        // std.time.sleep(pause_sleep_time);
+        std.time.sleep(pause_sleep_time);
         // }
         // if (ntimer == 0 && nevent == 0 && loop->idles.size() != 0) {
         _ = try self.handle_idles();
@@ -83,7 +83,7 @@ pub fn run(self: *Self) !i32 {
 
     // 轮询后
     self.status = Status.stop;
-    // self.end_time = Time.gethrtime();
+    self.end_time = Time.gethrtime();
     self.cleanup();
 
     return 0;
@@ -152,7 +152,7 @@ pub fn del_idle(self: *Self, idle_id: u32) bool {
 
 pub fn handle_idles(self: *Self) !u32 {
     _ = self;
-    std.debug.print("handle_idles", .{});
+    std.debug.print("handle_idles\n", .{});
     return 0;
 }
 
@@ -236,9 +236,5 @@ test "run with idles" {
     _ = try loop.add_idle(&test_cb, ud, 5);
     // std.debug.print("\nidle: {}\n", .{idle});
 
-    // _ = try loop.run();
-}
-
-test "time" {
-    std.debug.print("time: {}", .{Time.gethrtime()});
+    _ = try loop.run();
 }
