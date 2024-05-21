@@ -78,7 +78,8 @@ pub fn run(self: *Self) !i32 {
         Time.sleep(pause_sleep_time);
         // }
         // if (ntimer == 0 && nevent == 0 && loop->idles.size() != 0) {
-        _ = try self.handle_idles();
+        const nidle = try self.handle_idles();
+        std.debug.print("\tnidle: {}\n", .{nidle});
         // }
     }
 
@@ -119,7 +120,7 @@ pub fn unpause(self: *Self) i32 {
     return 0;
 }
 
-pub fn add_idle(self: *Self, callback: *const fn () void, userdata: *void, repeat: u32) !*Idle {
+pub fn add_idle(self: *Self, callback: *const fn (*Idle, *void) void, userdata: *void, repeat: u32) !*Idle {
     std.debug.print("add_idle", .{});
     std.debug.print("\tcallback: {}", .{callback});
     std.debug.print("\tuserdata: {}", .{userdata});
@@ -152,9 +153,25 @@ pub fn del_idle(self: *Self, idle_id: u32) bool {
 }
 
 pub fn handle_idles(self: *Self) !u32 {
-    _ = self;
     std.debug.print("handle_idles\n", .{});
-    return 0;
+
+    var nidle: u32 = 0;
+    var it = self.idles.valueIterator();
+    while (it.next()) |pidle| {
+        const idle = pidle.*;
+        if (idle.destroy or idle.repeat == 0) {
+            _ = self.idles.remove(idle.id);
+            self.allocator.destroy(idle);
+            continue;
+        }
+        if (idle.disable) {
+            continue;
+        }
+        idle.callback(idle, idle.userdata);
+        nidle += 1;
+    }
+
+    return nidle;
 }
 
 fn cleanup(self: *Self) void {
@@ -208,8 +225,8 @@ test "resume" {
     _ = unpause(&loop);
 }
 
-fn test_cb() void {
-    std.debug.print("test_cb: idle: , ud: ", .{});
+fn test_cb(idle: *Idle, ud: *void) void {
+    std.debug.print("test_cb: idle: {}, ud: {}", .{ idle, ud });
 }
 
 test "add_idle" {

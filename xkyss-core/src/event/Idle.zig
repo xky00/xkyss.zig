@@ -2,7 +2,7 @@ const std = @import("std");
 const Loop = @import("Loop.zig");
 
 const Self = @This();
-pub const CallBack = fn () void;
+pub const CallBack = fn (*Self, *void) void;
 
 // 成员变量
 loop: *Loop = undefined,
@@ -12,4 +12,4 @@ callback: *const CallBack = undefined,
 userdata: *void = undefined,
 // private:
 destroy: bool = false,
-// disable: u1 = 1,
+disable: bool = false,
