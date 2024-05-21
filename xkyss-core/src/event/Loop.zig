@@ -168,6 +168,10 @@ pub fn handle_idles(self: *Self) !u32 {
             continue;
         }
         idle.callback(idle, idle.userdata);
+        std.debug.print("\n\trepeat: {}\n", .{idle.repeat});
+        if (idle.repeat != 0xFFFFFFFF) {
+            idle.repeat -= 1;
+        }
         nidle += 1;
     }
 
