@@ -219,16 +219,17 @@ pub fn add_timer(self: *Self, callback: *const fn (*Timer, *void) void, userdata
     return timer;
 }
 
-// TODO: test me!
 pub fn del_timer(self: *Self, timer_id: u32) bool {
     std.debug.print("del_timer", .{});
     const removed = self.timers.fetchRemove(timer_id);
     if (removed) |kv| {
         kv.value.destroy = true;
-        std.debug.print("\tremove Success. {}\n", .{kv.value});
+        std.debug.print("\tremove Success. timer_id: {}\n", .{timer_id});
+        self.allocator.destroy(kv.value);
+        // std.debug.print("\t.......{}\n", .{self.timers.count()});
         return true;
     } else {
-        std.debug.print("\tremove Failed. idle_id: {}\n", .{timer_id});
+        std.debug.print("\tremove Failed. timer_id: {}\n", .{timer_id});
         return false;
     }
 }
@@ -321,4 +322,17 @@ test "add_timer" {
     const ud: *void = @ptrCast(&x);
     const idle = try loop.add_timer(&test_timer_cb, ud, 5, 5);
     std.debug.print("\ntimer: {}\n", .{idle});
+}
+
+test "del_timer" {
+    var loop = Self.init(std.testing.allocator);
+    defer loop.deinit();
+    var x: u32 = 99;
+    const ud: *void = @ptrCast(&x);
+    const timer = try loop.add_timer(&test_timer_cb, ud, 5, 5);
+    const timer_id = timer.id;
+    std.debug.print("\n timer: {}\n", .{timer});
+
+    _ = loop.del_timer(timer_id);
+    _ = loop.del_timer(timer_id);
 }
