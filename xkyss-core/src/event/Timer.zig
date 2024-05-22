@@ -7,9 +7,12 @@ pub const CallBack = fn (*Self, *void) void;
 // 成员变量
 loop: *Loop = undefined,
 id: u32 = 0,
+timeout: u32 = 0,
 repeat: u32 = 0,
 callback: *const CallBack = undefined,
 userdata: *void = undefined,
+
 // private:
 destroy: bool = true,
 disable: bool = true,
+next_timeout: u32 = 0,

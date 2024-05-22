@@ -3,10 +3,11 @@
 const std = @import("std");
 const Time = @import("../base/time.zig");
 const Idle = @import("Idle.zig");
+const Timer = @import("Timer.zig");
 
 const Self = @This();
 const IdleMap = std.AutoHashMap(u32, *Idle);
-// const IdleCallback = fn (*Idle, *void) void;
+const TimerMap = std.AutoHashMap(u32, *Timer);
 
 // 状态
 pub const Status = enum {
@@ -26,8 +27,15 @@ start_time: u64 = 0,
 end_time: u64 = 0,
 current_time: u64 = 0,
 loop_count: u64 = 0,
+
+// for idle
 idle_count: u32 = 0,
 idles: IdleMap = undefined,
+
+// for timer
+timer_count: u32 = 0,
+min_timer_timeout: u32 = 0,
+timers: TimerMap = undefined,
 
 pub fn init(allocator: std.mem.Allocator) Self {
     const loop: Self = .{
@@ -122,9 +130,7 @@ pub fn unpause(self: *Self) i32 {
 
 pub fn add_idle(self: *Self, callback: *const fn (*Idle, *void) void, userdata: *void, repeat: u32) !*Idle {
     std.debug.print("add_idle", .{});
-    std.debug.print("\tcallback: {}", .{callback});
-    std.debug.print("\tuserdata: {}", .{userdata});
-    std.debug.print("\trepeat: {}", .{repeat});
+    std.debug.print("\tcallback: {}, userdata: {}, repeat: {}", .{ callback, userdata, repeat });
     std.debug.print("\n", .{});
 
     var idle = try self.allocator.create(Idle);
@@ -178,6 +184,28 @@ pub fn handle_idles(self: *Self) !u32 {
     return nidle;
 }
 
+// TODO: complete me!!
+pub fn add_timer(self: *Self, callback: *const fn (*Timer, *void) void, userdata: *void, timeout: u32, repeat: u32) !*Timer {
+    _ = self;
+    std.debug.print("add_timer", .{});
+    std.debug.print("\tcallback: {}, userdata: {}, timeout: {}, repeat: {}", .{ callback, userdata, timeout, repeat });
+    std.debug.print("\n", .{});
+}
+
+// TODO: test me!
+pub fn del_timer(self: *Self, timer_id: u32) bool {
+    std.debug.print("del_timer", .{});
+    const removed = self.timers.fetchRemove(timer_id);
+    if (removed) |kv| {
+        kv.value.destroy = true;
+        std.debug.print("\tremove Success. {}\n", .{kv.value});
+        return true;
+    } else {
+        std.debug.print("\tremove Failed. idle_id: {}\n", .{timer_id});
+        return false;
+    }
+}
+
 fn cleanup(self: *Self) void {
     std.debug.print("cleanup: {}\n", .{self});
 }
@@ -193,9 +221,7 @@ fn stop_async(self: *Self) !void {
 }
 
 test "init & deinit" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
-    var loop = Self.init(allocator);
+    var loop = Self.init(std.testing.allocator);
     defer loop.deinit();
 }
 
@@ -206,25 +232,19 @@ test "run" {
 }
 
 test "stop" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
-    var loop = Self.init(allocator);
+    var loop = Self.init(std.testing.allocator);
     defer loop.deinit();
     _ = stop(&loop);
 }
 
 test "pause" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
-    var loop = Self.init(allocator);
+    var loop = Self.init(std.testing.allocator);
     defer loop.deinit();
     _ = pause(&loop);
 }
 
 test "resume" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
-    var loop = Self.init(allocator);
+    var loop = Self.init(std.testing.allocator);
     defer loop.deinit();
     _ = unpause(&loop);
 }
@@ -234,9 +254,7 @@ fn test_cb(idle: *Idle, ud: *void) void {
 }
 
 test "add_idle" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
-    var loop = Self.init(allocator);
+    var loop = Self.init(std.testing.allocator);
     defer loop.deinit();
     var x: u32 = 99;
     const ud: *void = @ptrCast(&x);
@@ -245,9 +263,7 @@ test "add_idle" {
 }
 
 test "del_idle" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
-    var loop = Self.init(allocator);
+    var loop = Self.init(std.testing.allocator);
     defer loop.deinit();
     var x: u32 = 99;
     const ud: *void = @ptrCast(&x);
@@ -259,9 +275,7 @@ test "del_idle" {
 }
 
 test "run with idles" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
-    var loop = Self.init(allocator);
+    var loop = Self.init(std.testing.allocator);
     defer loop.deinit();
     var x: u32 = 99;
     const ud: *void = @ptrCast(&x);
