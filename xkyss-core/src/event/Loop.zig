@@ -41,17 +41,29 @@ pub fn init(allocator: std.mem.Allocator) Self {
     const loop: Self = .{
         .allocator = allocator,
         .idles = IdleMap.init(allocator),
+        .timers = TimerMap.init(allocator),
     };
     return loop;
 }
 
 pub fn deinit(self: *Self) void {
     std.debug.print("\ndeinit\n", .{});
-    var it = self.idles.valueIterator();
-    while (it.next()) |pidle| {
-        self.allocator.destroy(pidle.*);
+    // deinit idles
+    {
+        var it = self.idles.valueIterator();
+        while (it.next()) |pidle| {
+            self.allocator.destroy(pidle.*);
+        }
+        self.idles.deinit();
     }
-    self.idles.deinit();
+    // deinit timers
+    {
+        var it = self.timers.valueIterator();
+        while (it.next()) |ptimer| {
+            self.allocator.destroy(ptimer.*);
+        }
+        self.timers.deinit();
+    }
 }
 
 pub fn run(self: *Self) !i32 {
@@ -190,12 +202,21 @@ pub fn handle_idles(self: *Self) !u32 {
     return nidle;
 }
 
-// TODO: complete me!!
 pub fn add_timer(self: *Self, callback: *const fn (*Timer, *void) void, userdata: *void, timeout: u32, repeat: u32) !*Timer {
-    _ = self;
     std.debug.print("add_timer", .{});
     std.debug.print("\tcallback: {}, userdata: {}, timeout: {}, repeat: {}", .{ callback, userdata, timeout, repeat });
     std.debug.print("\n", .{});
+
+    var timer = try self.allocator.create(Timer);
+    timer.loop = self;
+    self.timer_count += 1;
+    timer.id = self.timer_count;
+    timer.callback = callback;
+    timer.userdata = userdata;
+    timer.timeout = timeout;
+    timer.repeat = repeat;
+    try self.timers.put(timer.id, timer);
+    return timer;
 }
 
 // TODO: test me!
@@ -251,7 +272,7 @@ test "resume" {
     _ = unpause(&loop);
 }
 
-fn test_cb(idle: *Idle, ud: *void) void {
+fn test_idle_cb(idle: *Idle, ud: *void) void {
     std.debug.print("test_cb: idle: {}, ud: {}", .{ idle, ud });
 }
 
@@ -260,7 +281,7 @@ test "add_idle" {
     defer loop.deinit();
     var x: u32 = 99;
     const ud: *void = @ptrCast(&x);
-    const idle = try loop.add_idle(&test_cb, ud, 5);
+    const idle = try loop.add_idle(&test_idle_cb, ud, 5);
     std.debug.print("\nidle: {}\n", .{idle});
 }
 
@@ -269,7 +290,7 @@ test "del_idle" {
     defer loop.deinit();
     var x: u32 = 99;
     const ud: *void = @ptrCast(&x);
-    const idle = try loop.add_idle(&test_cb, ud, 5);
+    const idle = try loop.add_idle(&test_idle_cb, ud, 5);
     const idle_id = idle.id;
     std.debug.print("\n idle: {}\n", .{idle});
 
@@ -282,9 +303,22 @@ test "run with idles" {
     defer loop.deinit();
     var x: u32 = 99;
     const ud: *void = @ptrCast(&x);
-    _ = try loop.add_idle(&test_cb, ud, 5);
+    _ = try loop.add_idle(&test_idle_cb, ud, 5);
     // std.debug.print("\nidle: {}\n", .{idle});
 
     try loop.stop_async();
     _ = try loop.run();
+}
+
+fn test_timer_cb(idle: *Timer, ud: *void) void {
+    std.debug.print("test_cb: idle: {}, ud: {}", .{ idle, ud });
+}
+
+test "add_timer" {
+    var loop = Self.init(std.testing.allocator);
+    defer loop.deinit();
+    var x: u32 = 99;
+    const ud: *void = @ptrCast(&x);
+    const idle = try loop.add_timer(&test_timer_cb, ud, 5, 5);
+    std.debug.print("\ntimer: {}\n", .{idle});
 }
