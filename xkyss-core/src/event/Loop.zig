@@ -89,16 +89,16 @@ pub fn run(self: *Self) !i32 {
         self.loop_count += 1;
         // // timers -> events -> idles
         // ntimer = nevent = nidle = 0;
+        var nidle: u32 = 0;
+        var ntimer: u32 = 0;
         // event_timeout = INFINITE;
         // if (loop->timers.size() != 0) {
         //     ntimer = hloop_handle_timers(loop);
         //     event_timeout = MAX(MIN_EVENT_TIMEOUT, loop->min_timer_timeout/10);
         // }
-        // var nidle: u32 = 0;
-        // var ntimer: u32 = 0;
-        // if (self.timers.count() != 0) {
-        //     ntimer = try self.handle_timers();
-        // }
+        if (self.timers.count() != 0) {
+            ntimer = try self.handle_timers();
+        }
         // if (loop->events.size() == 0 || loop->idles.size() != 0) {
         //     event_timeout = MIN(event_timeout, MAX_EVENT_TIMEOUT);
         // }
@@ -110,9 +110,9 @@ pub fn run(self: *Self) !i32 {
         Time.sleep(pause_sleep_time);
         // }
         // if (ntimer == 0 && nevent == 0 && loop->idles.size() != 0) {
-        // if (ntimer == 0 and self.idles.count() != 0) {
-        //     nidle = try self.handle_idles();
-        // }
+        if (ntimer == 0 and self.idles.count() != 0) {
+            nidle = try self.handle_idles();
+        }
         // std.debug.print("\tnidle: {}, ntimer: {}\n", .{ nidle, ntimer });
         // }
     }
@@ -260,7 +260,13 @@ pub fn handle_timers(self: *Self) !u32 {
         if (timer.disable) {
             continue;
         }
-        std.debug.print("timeout: {}, next_timeout: {}, current_time: {}\n", .{ timer.timeout, timer.next_timeout, self.current_time });
+        const delta = @as(i64, @intCast(self.current_time)) - @as(i64, @intCast(timer.next_timeout));
+        std.debug.print("timeout: {}, next_timeout: {}, current_time: {}, delta: {}\n", .{
+            timer.timeout,
+            timer.next_timeout,
+            self.current_time,
+            delta,
+        });
         if (timer.next_timeout < self.current_time) {
             ntimer += 1;
             timer.callback(timer, timer.userdata);
@@ -382,7 +388,7 @@ test "run with timers" {
     defer loop.deinit();
     var x: u32 = 99;
     const ud: *void = @ptrCast(&x);
-    _ = try loop.add_timer(&test_timer_cb, ud, 5, 5);
+    _ = try loop.add_timer(&test_timer_cb, ud, 100, 5);
     // std.debug.print("\ntimer: {}\n", .{timer});
 
     try loop.stop_async();
