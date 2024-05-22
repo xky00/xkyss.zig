@@ -5,19 +5,20 @@ var s_freq: f64 = 0;
 
 pub fn gethrtime() u64 {
     if (s_freq == 0) {
-        const freq = os.windows.QueryPerformanceFrequency();
-        s_freq = @as(f64, @floatFromInt(freq)) / 10_000_000;
+        s_freq = @floatFromInt(os.windows.QueryPerformanceFrequency());
+        // std.debug.print("s_freq: {}\n", .{s_freq});
     }
     if (s_freq != 0) {
-        const count = os.windows.QueryPerformanceCounter();
-        const r: f64 = @as(f64, @floatFromInt(count)) / s_freq;
-        return @intFromFloat(r);
+        const f_count: f64 = @floatFromInt(os.windows.QueryPerformanceCounter());
+        // std.debug.print("f_count: {}\n", .{f_count});
+        return @intFromFloat(f_count / s_freq * 10_000_000);
     }
     return 0;
 }
 
 pub fn sleep(ms: u64) void {
     std.time.sleep(ms * std.time.ns_per_ms);
+    // std.debug.print("{}\n", .{ms * std.time.ns_per_ms});
 }
 
 // test "gethrtime" {
@@ -25,7 +26,23 @@ pub fn sleep(ms: u64) void {
 //         @cInclude("base/time.h");
 //     });
 
-//     const t1: u64 = @intCast(c.gethrtime());
-//     const t2 = gethrtime();
-//     try std.testing.expect(t2 - t1 < 100);
+//     for (0..20) |_| {
+//         const zt = gethrtime();
+//         const ct = c.gethrtime();
+//         std.debug.print("z: {}\n", .{zt});
+//         std.debug.print("c: {}\n", .{ct});
+//         try std.testing.expect(ct - zt < 100);
+//     }
 // }
+
+// test "sleep" {
+//     for (0..10) |i| {
+//         sleep(1000);
+//         std.debug.print("{}\n", .{i});
+//     }
+// }
+
+test "QueryPerformanceFrequency" {
+    const freq = os.windows.QueryPerformanceFrequency();
+    std.debug.print("freq: {}\n", .{freq});
+}

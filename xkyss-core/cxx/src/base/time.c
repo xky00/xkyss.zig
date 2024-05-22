@@ -18,16 +18,16 @@ typedef union LARGE_INTEGER {
 };
 
 unsigned long long gethrtime() {
-    static double s_freq = 0;
+    static LONGLONG s_freq = 0;
     if (s_freq == 0) {
         LARGE_INTEGER freq;
         QueryPerformanceFrequency(&freq);
-        s_freq = (double)freq.QuadPart / 10000000;
+        s_freq = freq.QuadPart;
     }
     if (s_freq != 0) {
         LARGE_INTEGER count;
         QueryPerformanceCounter(&count);
-        return count.QuadPart / s_freq;
+        return count.QuadPart / (double)s_freq * 10000000;
     }
     return 0;
 }

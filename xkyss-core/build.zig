@@ -32,7 +32,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-    // try depentc(exe, b);
+    try depentc(exe, b);
     exe.root_module.addImport("xkyss-core", module_xkyss_core);
     b.installArtifact(exe);
 

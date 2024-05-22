@@ -1,30 +1,17 @@
 const std = @import("std");
 const ks = @import("xkyss-core");
-const sleep = ks.time.sleep;
+
+const c = @cImport({
+    @cInclude("base/time.h");
+});
 
 pub fn main() !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
-    var loop = ks.Loop.init(allocator);
-    std.debug.print("{}\n", .{loop});
-
-    _ = try std.Thread.spawn(.{}, runner, .{&loop});
-    // 等待循环开始
-    sleep(100);
-
-    _ = loop.pause();
-    _ = loop.unpause();
-    _ = loop.stop();
-}
-
-fn runner(loop: *ks.Loop) void {
-    std.debug.print("runner {}\n", .{loop});
-    _ = try loop.run();
-}
-
-test "simple test" {
-    var list = std.ArrayList(i32).init(std.testing.allocator);
-    defer list.deinit(); // try commenting this out and see if zig detects the memory leak!
-    try list.append(42);
-    try std.testing.expectEqual(@as(i32, 42), list.pop());
+    for (0..20) |_| {
+        const zt = ks.time.gethrtime();
+        const ct = c.gethrtime();
+        const it = (try std.time.Instant.now()).timestamp;
+        std.debug.print("z: {}\n", .{zt});
+        std.debug.print("c: {}\n", .{ct});
+        std.debug.print("i: {}\n", .{it});
+    }
 }
