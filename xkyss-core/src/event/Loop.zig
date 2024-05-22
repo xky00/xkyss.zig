@@ -46,6 +46,11 @@ pub fn init(allocator: std.mem.Allocator) Self {
 }
 
 pub fn deinit(self: *Self) void {
+    std.debug.print("\ndeinit\n", .{});
+    var it = self.idles.valueIterator();
+    while (it.next()) |pidle| {
+        self.allocator.destroy(pidle.*);
+    }
     self.idles.deinit();
 }
 
@@ -94,7 +99,6 @@ pub fn run(self: *Self) !i32 {
     // 轮询后
     self.status = Status.stop;
     self.end_time = Time.gethrtime();
-    self.cleanup();
 
     return 0;
 }
@@ -145,15 +149,17 @@ pub fn add_idle(self: *Self, callback: *const fn (*Idle, *void) void, userdata: 
 }
 
 pub fn del_idle(self: *Self, idle_id: u32) bool {
-    std.debug.print("del_idle", .{});
+    std.debug.print("\ndel_idle", .{});
 
     const removed = self.idles.fetchRemove(idle_id);
     if (removed) |kv| {
         kv.value.destroy = true;
-        std.debug.print("\tremove Success. {}\n", .{kv.value});
+        std.debug.print("\tremove Success. idle_id: {}\n", .{idle_id});
+        self.allocator.destroy(kv.value);
+        // std.debug.print("\t.......{}\n", .{self.idles.count()});
         return true;
     } else {
-        std.debug.print("\tremove Failed. idle_id: {}\n", .{idle_id});
+        std.debug.print("\tremove Failed.  idle_id: {}\n", .{idle_id});
         return false;
     }
 }
@@ -204,10 +210,6 @@ pub fn del_timer(self: *Self, timer_id: u32) bool {
         std.debug.print("\tremove Failed. idle_id: {}\n", .{timer_id});
         return false;
     }
-}
-
-fn cleanup(self: *Self) void {
-    std.debug.print("cleanup: {}\n", .{self});
 }
 
 fn stop_async(self: *Self) !void {
@@ -268,10 +270,11 @@ test "del_idle" {
     var x: u32 = 99;
     const ud: *void = @ptrCast(&x);
     const idle = try loop.add_idle(&test_cb, ud, 5);
+    const idle_id = idle.id;
     std.debug.print("\n idle: {}\n", .{idle});
 
-    _ = loop.del_idle(idle.id);
-    _ = loop.del_idle(idle.id);
+    _ = loop.del_idle(idle_id);
+    _ = loop.del_idle(idle_id);
 }
 
 test "run with idles" {
