@@ -189,12 +189,15 @@ pub fn handle_idles(self: *Self) !u32 {
     std.debug.print("handle_idles\n", .{});
 
     var nidle: u32 = 0;
+    // 记录需要删除的键
+    var ids_to_remove = std.ArrayList(u32).init(self.allocator);
+    defer ids_to_remove.deinit();
+
     var it = self.idles.valueIterator();
     while (it.next()) |pidle| {
         const idle = pidle.*;
         if (idle.destroy or idle.repeat == 0) {
-            _ = self.idles.remove(idle.id);
-            self.allocator.destroy(idle);
+            try ids_to_remove.append(idle.id);
             continue;
         }
         if (idle.disable) {
@@ -206,6 +209,11 @@ pub fn handle_idles(self: *Self) !u32 {
             idle.repeat -= 1;
         }
         nidle += 1;
+    }
+
+    // 删除记录的键
+    for (ids_to_remove.items) |id| {
+        _ = self.del_idle(id);
     }
 
     return nidle;
@@ -248,13 +256,15 @@ pub fn handle_timers(self: *Self) !u32 {
     std.debug.print("handle_timers\n", .{});
 
     var ntimer: u32 = 0;
+    // 记录需要删除的键
+    var ids_to_remove = std.ArrayList(u32).init(self.allocator);
+    defer ids_to_remove.deinit();
 
     var it = self.timers.valueIterator();
     while (it.next()) |ptimer| {
         const timer = ptimer.*;
         if (timer.destroy or timer.repeat == 0) {
-            _ = self.timers.remove(timer.id);
-            self.allocator.destroy(timer);
+            try ids_to_remove.append(timer.id);
             continue;
         }
         if (timer.disable) {
@@ -275,6 +285,11 @@ pub fn handle_timers(self: *Self) !u32 {
                 timer.repeat -= 1;
             }
         }
+    }
+
+    // 删除记录的键
+    for (ids_to_remove.items) |id| {
+        _ = self.del_timer(id);
     }
 
     return ntimer;
