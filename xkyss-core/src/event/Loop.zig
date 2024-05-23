@@ -1,6 +1,7 @@
 //! 基础轮询
 //!
 const std = @import("std");
+const Instant = std.time.Instant;
 const Time = @import("../base/time.zig");
 const Idle = @import("Idle.zig");
 const Timer = @import("Timer.zig");
@@ -23,9 +24,9 @@ const max_event_timeout: u64 = 1000; // ms
 // 成员变量
 allocator: std.mem.Allocator,
 status: Status = Status.stop,
-start_time: u64 = 0,
-end_time: u64 = 0,
-current_time: u64 = 0,
+start_time: Instant,
+end_time: Instant,
+current_time: Instant,
 loop_count: u64 = 0,
 
 // for idle
@@ -42,6 +43,9 @@ pub fn init(allocator: std.mem.Allocator) Self {
         .allocator = allocator,
         .idles = IdleMap.init(allocator),
         .timers = TimerMap.init(allocator),
+        .start_time = Time.now(),
+        .end_time = Time.now(),
+        .current_time = Time.now(),
     };
     return loop;
 }
@@ -72,12 +76,12 @@ pub fn run(self: *Self) !i32 {
     // 轮询前
     self.status = Status.running;
     self.loop_count = 0;
-    self.start_time = Time.gethrtime();
+    self.start_time = Time.now();
     // 轮询
     // for (0..10) |i| {
     while (self.status != Status.stop) {
-        const delta = Time.gethrtime() - self.current_time;
-        self.current_time = Time.gethrtime();
+        const delta = Instant.since(Time.now(), self.current_time);
+        self.current_time = Time.now();
         // std.debug.print("loop {} at {}\n", .{ i, self.current_time });
         std.debug.print("pause_sleep_time: {}, delta: {}\n", .{ pause_sleep_time, delta });
         std.debug.print("loop {} at {}\n", .{ self.loop_count, self.current_time });
@@ -119,7 +123,7 @@ pub fn run(self: *Self) !i32 {
 
     // 轮询后
     self.status = Status.stop;
-    self.end_time = Time.gethrtime();
+    self.end_time = Time.now();
 
     return 0;
 }
@@ -231,8 +235,8 @@ pub fn add_timer(self: *Self, callback: *const fn (*Timer, *void) void, userdata
     timer.callback = callback;
     timer.userdata = userdata;
     timer.timeout = timeout;
-    timer.next_timeout = Time.gethrtime() + (timeout * 1000);
     timer.repeat = repeat;
+    timer.previous = Instant{ .timestamp = 0 };
     try self.timers.put(timer.id, timer);
     return timer;
 }
@@ -270,17 +274,15 @@ pub fn handle_timers(self: *Self) !u32 {
         if (timer.disable) {
             continue;
         }
-        const delta = @as(i64, @intCast(self.current_time)) - @as(i64, @intCast(timer.next_timeout));
-        std.debug.print("timeout: {}, next_timeout: {}, current_time: {}, delta: {}\n", .{
-            timer.timeout,
-            timer.next_timeout,
-            self.current_time,
-            delta,
-        });
-        if (timer.next_timeout < self.current_time) {
+
+        // 已经过去多久 (ms)
+        const t = Instant.since(self.current_time, timer.previous) / std.time.ns_per_ms;
+        std.debug.print("t: {}, timeout: {}, previous: {}, current: {}\n", .{ t, timer.timeout, timer.previous.timestamp, self.current_time.timestamp });
+        if (t > timer.timeout) {
+            // std.debug.print("-----lt\n", .{});
             ntimer += 1;
             timer.callback(timer, timer.userdata);
-            timer.next_timeout += timer.timeout * 1000;
+            timer.previous = Time.now();
             if (timer.repeat != 0xFFFFFFFF) {
                 timer.repeat -= 1;
             }
