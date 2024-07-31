@@ -17,6 +17,7 @@ end_time: ?Instant,
 current_time: Instant,
 loop_count: u64 = 0,
 
+/// 构造
 pub fn init() Self {
     const current = Instant.now() catch unreachable;
     return .{
@@ -28,19 +29,26 @@ pub fn init() Self {
     };
 }
 
-pub fn deinit(self: Self) void {
-    std.debug.print("deinit: {}\n", .{&self});
+/// 析构
+pub fn deinit(self: *Self) void {
+    std.debug.print("deinit: 0x{X}\n", .{@intFromPtr(self)});
 }
 
+/// 运行循环
 pub fn run(self: *Self) !i32 {
     self.status = .running;
-    std.debug.print("run: {}\n", .{self});
+    std.debug.print("   run: 0x{X}\n", .{@intFromPtr(self)});
+
+    self.end_time = Instant.now() catch unreachable;
+    return 0;
 }
 
 test "loop" {
     std.debug.print("loop\n", .{});
 
-    const loop = init();
-    std.debug.print("loop: {}\n", .{loop});
+    var loop = init();
+    std.debug.print("  loop: 0x{X}\n", .{@intFromPtr(&loop)});
     defer loop.deinit();
+
+    _ = try loop.run();
 }
