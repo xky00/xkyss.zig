@@ -49,3 +49,4 @@ playc/hv/hv-client/libhv.*.log
 *.vcxproj.user
 xkyss-core/int
 xkyss-core/out
+xkyss-core/.zig-cache
