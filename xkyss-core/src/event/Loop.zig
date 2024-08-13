@@ -45,10 +45,11 @@ pub fn init(allocator: Allocator) Self {
 /// 析构
 pub fn deinit(self: *Self) void {
     std.debug.print("deinit: 0x{X}\n", .{@intFromPtr(self)});
-    const node = self.tail.?;
-    while (node != null) {
+    var current_node = self.tail;
+    while (current_node) |node| {
+        const next_node = node.next;
         self.allocator.destroy(node);
-        // node = node.*.next.?;
+        current_node = next_node;
     }
 }
 
@@ -65,6 +66,8 @@ pub fn run(self: *Self) !i32 {
 pub fn add_event(self: *Self, event: *Event) !void {
     const node = try self.allocator.create(Node);
     node.*.event = event;
+    node.*.next = null;
+
     if (self.tail == null) {
         self.tail = node;
     } else {
