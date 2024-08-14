@@ -2,10 +2,12 @@ const std = @import("std");
 const Event = @import("./Event.zig");
 const Instant = std.time.Instant;
 const Allocator = std.mem.Allocator;
+const AtomicU64 = std.atomic.Value(u64);
 
 const Self = @This();
 
 const Node = struct {
+    id: u64 = 0,
     // 节点对应的事件
     event: *Event,
     // 下一个事件
@@ -26,6 +28,7 @@ start_time: Instant,
 end_time: ?Instant = null,
 current_time: Instant,
 loop_count: u64 = 0,
+node_count: AtomicU64 = AtomicU64{ .raw = 0 },
 head: ?*Node = null,
 tail: ?*Node = null,
 current: ?*Node = null,
@@ -64,16 +67,32 @@ pub fn run(self: *Self) !i32 {
 
 /// 插入事件
 pub fn add_event(self: *Self, event: *Event) !void {
+    std.debug.print("   add_event: 0x{X}\n", .{@intFromPtr(self)});
+    // 更新[node_count]
+    _ = self.node_count.fetchAdd(1, .monotonic);
+    // std.debug.print("node_count: {}\n", .{self.node_count});
+
     const node = try self.allocator.create(Node);
     node.*.event = event;
     node.*.next = null;
+    node.*.id = self.node_count.load(.seq_cst);
+    std.debug.print("\tnode: 0x{X}, id: {}\n", .{ @intFromPtr(node), node.id });
 
     if (self.tail == null) {
         self.tail = node;
     } else {
         self.tail.?.*.next = node;
     }
-    std.debug.print("   add_event: 0x{X}\n", .{@intFromPtr(self)});
+}
+
+pub fn show_event(self: *Self) void {
+    std.debug.print("show_event: 0x{X}\n", .{@intFromPtr(self)});
+    var current_node = self.tail;
+    while (current_node) |node| {
+        std.debug.print("\tnode: 0x{X}, id: {}\n", .{ @intFromPtr(node), node.id });
+        const next_node = node.next;
+        current_node = next_node;
+    }
 }
 
 test "loop" {
@@ -92,4 +111,6 @@ test "add_event" {
     defer loop.deinit();
     var event = .{ .emitTime = Instant.now() catch unreachable };
     try loop.add_event(&event);
+    try loop.add_event(&event);
+    loop.show_event();
 }
