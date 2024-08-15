@@ -48,11 +48,11 @@ pub fn init(allocator: Allocator) Self {
 /// 析构
 pub fn deinit(self: *Self) void {
     std.debug.print("deinit: 0x{X}\n", .{@intFromPtr(self)});
-    var current_node = self.tail;
+    var current_node = self.head;
     while (current_node) |node| {
-        const next_node = node.next;
+        std.debug.print("\tnode: 0x{X}, id: {}\n", .{ @intFromPtr(node), node.id });
+        current_node = node.next;
         self.allocator.destroy(node);
-        current_node = next_node;
     }
 }
 
@@ -82,18 +82,24 @@ pub fn add_event(self: *Self, event: *Event) !void {
         self.tail = node;
     } else {
         self.tail.?.*.next = node;
+        self.tail = node;
+    }
+
+    if (self.head == null) {
+        self.head = node;
     }
 }
 
 pub fn show_event(self: *Self) void {
-    std.debug.print("show_event: 0x{X}\n", .{@intFromPtr(self)});
-    var current_node = self.tail;
+    std.debug.print("  show_event: 0x{X}\n", .{@intFromPtr(self)});
+    var current_node = self.head;
     while (current_node) |node| {
         std.debug.print("\tnode: 0x{X}, id: {}\n", .{ @intFromPtr(node), node.id });
-        const next_node = node.next;
-        current_node = next_node;
+        current_node = node.next;
     }
 }
+
+fn new_event() *Event {}
 
 test "loop" {
     std.debug.print("loop\n", .{});
@@ -109,8 +115,15 @@ test "add_event" {
     std.debug.print("add_event\n", .{});
     var loop = init(std.testing.allocator);
     defer loop.deinit();
-    var event = .{ .emitTime = Instant.now() catch unreachable };
-    try loop.add_event(&event);
-    try loop.add_event(&event);
+    for (0..10) |_| {
+        var event = .{ .emitTime = Instant.now() catch unreachable };
+        try loop.add_event(&event);
+    }
     loop.show_event();
 }
+
+// test "add_event async" {
+//     std.debug.print("add_event async\n", .{});
+//     var loop = init(std.testing.allocator);
+//     defer loop.deinit();
+// }
