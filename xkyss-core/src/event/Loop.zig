@@ -32,6 +32,7 @@ node_count: AtomicU64 = AtomicU64{ .raw = 0 },
 head: ?*Node = null,
 tail: ?*Node = null,
 current: ?*Node = null,
+node_mutex: std.Thread.Mutex,
 
 /// 构造
 pub fn init(allocator: Allocator) Self {
@@ -42,6 +43,7 @@ pub fn init(allocator: Allocator) Self {
         .start_time = current,
         .current_time = current,
         .loop_count = 0,
+        .node_mutex = std.Thread.Mutex{},
     };
 }
 
@@ -77,6 +79,10 @@ pub fn add_event(self: *Self, event: *Event) !void {
     node.*.next = null;
     node.*.id = self.node_count.load(.seq_cst);
     std.debug.print("\tnode: 0x{X}, id: {}\n", .{ @intFromPtr(node), node.id });
+
+    // 插入到队列前加锁
+    self.node_mutex.lock();
+    defer self.node_mutex.unlock();
 
     if (self.tail == null) {
         self.tail = node;
