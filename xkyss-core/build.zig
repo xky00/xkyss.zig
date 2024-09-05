@@ -88,7 +88,7 @@ pub fn build(b: *std.Build) void {
 }
 
 fn depentc(c: *std.Build.Step.Compile, b: *std.Build) !void {
-    const c_include_path = .{ .path = "cxx/include/" };
+    const c_include_path = .{ .src_path = .{ .owner = b, .sub_path = "cxx/include/" } };
     const c_source_files = .{ .root = b.path("cxx/src/"), .files = &.{"base/time.c"}, .flags = &.{} };
 
     c.addIncludePath(c_include_path);
