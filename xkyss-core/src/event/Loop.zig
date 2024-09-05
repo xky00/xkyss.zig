@@ -73,10 +73,11 @@ fn run_once_danger(self: *Self) void {
 
     if (self.current) |node| {
         // TODO: 执行事件
-        std.debug.print("\tnode: 0x{X}\n", .{@intFromPtr(node)});
+        std.debug.print("\t   node: 0x{X}\n", .{@intFromPtr(node)});
         // 指向下一个
         self.current = node.*.next;
     }
+    std.debug.print("\tcurrent: 0x{X}\n", .{@intFromPtr(self.current)});
 }
 
 /// 插入事件
@@ -103,6 +104,7 @@ pub fn add_event(self: *Self, event: *Event) !void {
 
     if (self.head == null) {
         self.head = node;
+        self.current = node;
     }
 }
 
@@ -149,6 +151,7 @@ test "run_once" {
     }
     loop.show_event();
 
+    loop.run_once_danger();
     loop.run_once_danger();
 }
 
