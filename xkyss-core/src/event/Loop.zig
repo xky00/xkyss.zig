@@ -61,15 +61,27 @@ pub fn deinit(self: *Self) void {
 /// 运行循环
 pub fn run(self: *Self) !i32 {
     self.status = .running;
-    std.debug.print("   run: 0x{X}\n", .{@intFromPtr(self)});
+    std.debug.print("run: 0x{X}\n", .{@intFromPtr(self)});
 
     self.end_time = Instant.now() catch unreachable;
     return 0;
 }
 
+/// 运行一次 (无检查)
+fn run_once_danger(self: *Self) void {
+    std.debug.print("run_once: 0x{X}\n", .{@intFromPtr(self)});
+
+    if (self.current) |node| {
+        // TODO: 执行事件
+        std.debug.print("\tnode: 0x{X}\n", .{@intFromPtr(node)});
+        // 指向下一个
+        self.current = node.*.next;
+    }
+}
+
 /// 插入事件
 pub fn add_event(self: *Self, event: *Event) !void {
-    std.debug.print("   add_event: 0x{X}\n", .{@intFromPtr(self)});
+    std.debug.print("add_event: 0x{X}\n", .{@intFromPtr(self)});
     // 更新[node_count]
     _ = self.node_count.fetchAdd(1, .monotonic);
     // std.debug.print("node_count: {}\n", .{self.node_count});
@@ -84,12 +96,10 @@ pub fn add_event(self: *Self, event: *Event) !void {
     self.node_mutex.lock();
     defer self.node_mutex.unlock();
 
-    if (self.tail == null) {
-        self.tail = node;
-    } else {
+    if (self.tail != null) {
         self.tail.?.*.next = node;
-        self.tail = node;
     }
+    self.tail = node;
 
     if (self.head == null) {
         self.head = node;
@@ -97,7 +107,7 @@ pub fn add_event(self: *Self, event: *Event) !void {
 }
 
 pub fn show_event(self: *Self) void {
-    std.debug.print("  show_event: 0x{X}\n", .{@intFromPtr(self)});
+    std.debug.print("show_event: 0x{X}\n", .{@intFromPtr(self)});
     var current_node = self.head;
     while (current_node) |node| {
         std.debug.print("\tnode: 0x{X}, id: {}\n", .{ @intFromPtr(node), node.id });
@@ -108,7 +118,7 @@ pub fn show_event(self: *Self) void {
 fn new_event() *Event {}
 
 test "loop" {
-    std.debug.print("loop\n", .{});
+    std.debug.print("\n[Loop]: run\n", .{});
 
     var loop = init(std.testing.allocator);
     std.debug.print("  loop: 0x{X}\n", .{@intFromPtr(&loop)});
@@ -118,7 +128,7 @@ test "loop" {
 }
 
 test "add_event" {
-    std.debug.print("add_event\n", .{});
+    std.debug.print("\n[Loop]: add_event\n", .{});
     var loop = init(std.testing.allocator);
     defer loop.deinit();
     for (0..10) |_| {
@@ -126,6 +136,20 @@ test "add_event" {
         try loop.add_event(&event);
     }
     loop.show_event();
+}
+
+test "run_once" {
+    std.debug.print("\n[Loop]: run_once\n", .{});
+    var loop = init(std.testing.allocator);
+    defer loop.deinit();
+
+    for (0..2) |_| {
+        var event = .{ .emitTime = Instant.now() catch unreachable };
+        try loop.add_event(&event);
+    }
+    loop.show_event();
+
+    loop.run_once_danger();
 }
 
 // test "add_event async" {

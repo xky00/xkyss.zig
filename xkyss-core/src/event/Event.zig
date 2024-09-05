@@ -29,7 +29,9 @@ pub fn execute(self: Self) !void {
 }
 
 test "execute" {
-    var event = Self{
+    std.debug.print("\n[Event]: execute\n", .{});
+
+    var event: Self = .{
         .emitTime = Instant.now() catch unreachable,
     };
     try event.execute();
