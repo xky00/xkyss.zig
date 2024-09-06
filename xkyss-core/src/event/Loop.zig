@@ -106,6 +106,9 @@ pub fn add_event(self: *Self, event: *Event) !void {
 
     if (self.head == null) {
         self.head = node;
+    }
+
+    if (self.current == null) {
         self.current = node;
     }
 }
