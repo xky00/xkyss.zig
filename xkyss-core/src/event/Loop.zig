@@ -73,7 +73,9 @@ fn run_once_danger(self: *Self) void {
 
     if (self.current) |node| {
         // TODO: 执行事件
+        node.event.status = .running;
         std.debug.print("\t   node: 0x{X}\n", .{@intFromPtr(node)});
+        node.event.status = .done;
         // 指向下一个
         self.current = node.*.next;
     }
@@ -108,6 +110,22 @@ pub fn add_event(self: *Self, event: *Event) !void {
     }
 }
 
+/// 清理一次已执行的事件
+pub fn clear_once(self: *Self) void {
+    std.debug.print("clear_event: 0x{X}\n", .{@intFromPtr(self)});
+    if (self.head) |node| {
+        if (node.event.status == .done) {
+            std.debug.print("\tnode(to be clear): 0x{X}, id: {}\n", .{ @intFromPtr(node), node.id });
+            // head 指向下一个
+            self.head = node.next;
+            // 当前这个清理掉
+            self.allocator.destroy(node);
+            std.debug.print("\thead(after clear): 0x{X}, id: {}\n", .{ @intFromPtr(self.head), self.head.?.id });
+        }
+    }
+}
+
+/// 展示事件列表
 pub fn show_event(self: *Self) void {
     std.debug.print("show_event: 0x{X}\n", .{@intFromPtr(self)});
     var current_node = self.head;
@@ -116,8 +134,6 @@ pub fn show_event(self: *Self) void {
         current_node = node.next;
     }
 }
-
-fn new_event() *Event {}
 
 test "loop" {
     std.debug.print("\n[Loop]: run\n", .{});
@@ -155,8 +171,17 @@ test "run_once" {
     loop.run_once_danger();
 }
 
-// test "add_event async" {
-//     std.debug.print("add_event async\n", .{});
-//     var loop = init(std.testing.allocator);
-//     defer loop.deinit();
-// }
+test "clear_once" {
+    std.debug.print("\n[Loop]: clear_once\n", .{});
+    var loop = init(std.testing.allocator);
+    defer loop.deinit();
+
+    for (0..2) |_| {
+        var event = .{ .emitTime = Instant.now() catch unreachable };
+        try loop.add_event(&event);
+    }
+    loop.show_event();
+
+    loop.run_once_danger();
+    loop.clear_once();
+}
